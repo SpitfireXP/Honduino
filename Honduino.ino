@@ -7,10 +7,12 @@ description: <I2C Display ansteuern und digitale Temperatursensoren auslesen um 
 ***********************************************************************************************************************/
 
 /*-----( Import libraries )-----*/
-  #include <LiquidCrystal_I2C.h>
+  #include "LiquidCrystal_I2C.h"
   #include <tsic.h>
-  #include <Wire.h>
+  #include "Wire.h"
   #include "TimerOne.h"
+
+
 
 // Get the LCD I2C Library here: 
 // https://bitbucket.org/fmalpartida/new-liquidcrystal/downloads
@@ -39,14 +41,11 @@ description: <I2C Display ansteuern und digitale Temperatursensoren auslesen um 
   int oeltemp;
   int boardspannung;
   char boardspannungbuffer [50];
-//  int drosselklappe;
   int helligkeit;
 
-// definieren ÖL-Anzeige
   int sensoroeldruck = (A0);
   int sensoroeltemp = (A1);
   int sensorbordspannung = (A2);
-//  int sensordrosselklappe = (A3);
   int sensorhelligkeit = (A3);
 
 // definiere VTEC-light
@@ -72,7 +71,6 @@ description: <I2C Display ansteuern und digitale Temperatursensoren auslesen um 
 
 
 
-
 // setup
   void setup()
   {
@@ -83,7 +81,7 @@ description: <I2C Display ansteuern und digitale Temperatursensoren auslesen um 
   Timer1.attachInterrupt(blinken);
 
 
- // Used to type in characters    
+ // Starte Serielle Datenübertragung
   Serial.begin(9600);
 
  // initialize the lcd for 20 chars 4 lines
@@ -106,7 +104,7 @@ description: <I2C Display ansteuern und digitale Temperatursensoren auslesen um 
   lcd.setCursor(0,1);
   lcd.print("#   <<Honduino>>   #");
   lcd.setCursor(0,2);
-  lcd.print("#      Version 1.1 #");
+  lcd.print("#      Version 1.2 #");
   lcd.setCursor(0,3);
   lcd.print("####################");
   delay(2500);
@@ -116,21 +114,14 @@ description: <I2C Display ansteuern und digitale Temperatursensoren auslesen um 
   void loop()
   {
  
-/*   if(digitalRead(licht) == 1)
-   {
-    analogWrite(beleuchtung, 30);
-   }
-  else
- {
-  analogWrite(beleuchtung, 255);
-  } 
- */  
+ 
 
+// Dimmen der Displayhelligkeit per LDR um bei Dunkelheit das Display abzudimmen
 
 int val = analogRead(sensorhelligkeit);
   
   val = constrain (val, 100, 700);
-  int ledLevel = map(val, 100, 700, 255, 40);
+  int ledLevel = map(val, 700, 100, 255, 30);
   
   analogWrite(beleuchtung, ledLevel);
 
@@ -204,7 +195,7 @@ int val = analogRead(sensorhelligkeit);
   Serial.println("----------------------------------------------------");
   Serial.println("Honduino build by SpitfireXP");
   Serial.println("Honduino@SpitfireXP.de");
-  Serial.println("Honduino Version 1.0");
+  Serial.println("Honduino Version 1.2");
   Serial.println("----------------------------------------------------");
   Serial.print(aussentemperatur);
   Serial.println(" C Außentemperatur");
@@ -212,7 +203,7 @@ int val = analogRead(sensorhelligkeit);
   Serial.println(" C Innentemperatur");
 
   Serial.print(motorraumtemperatur);
-  Serial.println(" C Motorraumtemperatur");
+  Serial.println(" C Kühlwassertemperatur");
   Serial.print(ansauglufttemperatur);
   Serial.println(" C Ansdauglufttemperatur");
 
@@ -226,9 +217,12 @@ int val = analogRead(sensorhelligkeit);
   Serial.print(vtec);
   Serial.println(" VTEC");
 
-//  Serial.print(drosselklappe);
-//  Serial.println("% Drosselklappenposition");
   Serial.print(sensorhelligkeit);
+  Serial.print("; ");
+  Serial.print(val);
+  Serial.print("; ");
+  Serial.print(ledLevel);
+  Serial.print("; ");
   Serial.println(" Helligkeit");
   Serial.print(boardspannungbuffer);
   Serial.println(" Volt");
@@ -257,71 +251,52 @@ int val = analogRead(sensorhelligkeit);
     
   // Auslesen und Anzeigen der Aussen und Innentemperatur
   lcd.setCursor(0, 2);
-  lcd.print("Aussentemp.");
-  lcd.setCursor(16, 2);
   lcd.print(aussentemperatur);
-  lcd.print("C ");
+  lcd.print("C Aussentemp.");
   lcd.setCursor(0, 3);
-  lcd.print("Innentemp.");
-  lcd.setCursor(16, 3);
   lcd.print(innentemperatur);
-  lcd.print("C ");  
-  //lcd.clear();
+  lcd.print("C Innentemp.");
+
   // Ausgabe Öldruck
   lcd.setCursor(0, 0);
+  lcd.print(oeldruckbuffer);
+  lcd.print("Bar ");
   lcd.write(239);
   lcd.print("ldruck");
-  lcd.setCursor(14, 0);
-  lcd.print(oeldruckbuffer);
-  lcd.print("Bar");
-
+  
   // Ausgabe Öltemperatur
   lcd.setCursor(0, 1);
-  lcd.write(239);
-  lcd.print("ltemperatur");
-  lcd.setCursor(14, 1);
   lcd.print(oeltemp);
   lcd.print("C ");
-
- 
+  lcd.write(239);
+  lcd.print("ltemperatur");
   }
 
-// Ausgabe der ersten seite
+// Ausgabe der zweiten Seite
   void seite2()
   {
-   // Ausgabe Drosselklappenposition
-//  lcd.setCursor(0, 2);
-//  lcd.print("Drosselklappe");
-//  lcd.setCursor(14, 2);
-//  lcd.print(drosselklappe);
-//  lcd.print("%  ");
-  // Ausgabe Boardspannung
+// Ausgabe Boardspannung
   lcd.setCursor(0, 0);
-  lcd.print("Boardspannung");
-  lcd.setCursor(14, 0);
   lcd.print(boardspannungbuffer);
-  lcd.print("V");  
+  lcd.print("V Boardspannung");
 
 // Zeile Löschen
   lcd.setCursor(0,1);
   lcd.print("               ");
   
-  // Auslesen und Anzeigen der Motorraum und Ansauglufttemperatur
+// Auslesen und Anzeigen der Motorraum und Ansauglufttemperatur
   lcd.setCursor(0, 2);
-  lcd.print("Motorraumtemp.");
-  lcd.setCursor(16, 2);
+//  lcd.print("Motorraumtemp.");
   lcd.print(motorraumtemperatur);
-  lcd.print("C ");
+  lcd.print("C Wassertemp.");
   lcd.setCursor(0, 3);
-  lcd.print("Ansauglufttemp.");
-  lcd.setCursor(16, 3);
   lcd.print(ansauglufttemperatur);
-  lcd.print("C ");
+  lcd.print("C Ansauglufttemp.");
   }
 
 
-/* Für Version 1.1
-  void disclaimer()
+/*
+void disclaimer()
   {
   lcd.setCursor(0,0);
   lcd.print("Honduino@");
@@ -340,5 +315,3 @@ int val = analogRead(sensorhelligkeit);
     digitalWrite(vtecanzeige, digitalRead(vtecanzeige) ^ 1);
   }
 }
-
-
