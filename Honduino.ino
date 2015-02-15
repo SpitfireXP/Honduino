@@ -39,14 +39,15 @@ description: <I2C Display ansteuern und digitale Temperatursensoren auslesen um 
   int oeltemp;
   int boardspannung;
   char boardspannungbuffer [50];
-  int drosselklappe;
-
+//  int drosselklappe;
+  int helligkeit;
 
 // definieren ÖL-Anzeige
   int sensoroeldruck = (A0);
   int sensoroeltemp = (A1);
   int sensorbordspannung = (A2);
-  int sensordrosselklappe = (A3);
+//  int sensordrosselklappe = (A3);
+  int sensorhelligkeit = (A3);
 
 // definiere VTEC-light
   int vtecState = 0;         // variable for reading the pushbutton status
@@ -75,7 +76,7 @@ description: <I2C Display ansteuern und digitale Temperatursensoren auslesen um 
 // setup
   void setup()
   {
-  pinMode(licht, INPUT);
+//  pinMode(licht, INPUT);
   pinMode(beleuchtung, OUTPUT);
   
   Timer1.initialize(alle_x_sekunden*100000);
@@ -105,7 +106,7 @@ description: <I2C Display ansteuern und digitale Temperatursensoren auslesen um 
   lcd.setCursor(0,1);
   lcd.print("#   <<Honduino>>   #");
   lcd.setCursor(0,2);
-  lcd.print("#      Version 1.0 #");
+  lcd.print("#      Version 1.1 #");
   lcd.setCursor(0,3);
   lcd.print("####################");
   delay(2500);
@@ -115,15 +116,25 @@ description: <I2C Display ansteuern und digitale Temperatursensoren auslesen um 
   void loop()
   {
  
-   if(digitalRead(licht) == 1)
+/*   if(digitalRead(licht) == 1)
    {
     analogWrite(beleuchtung, 30);
    }
   else
  {
   analogWrite(beleuchtung, 255);
- } 
-   
+  } 
+ */  
+
+
+int val = analogRead(sensorhelligkeit);
+  
+  val = constrain (val, 100, 700);
+  int ledLevel = map(val, 100, 700, 255, 40);
+  
+  analogWrite(beleuchtung, ledLevel);
+
+
   if(interruptCalled == 1){
   lcd.clear();
   interruptCalled = 0;
@@ -163,11 +174,11 @@ description: <I2C Display ansteuern und digitale Temperatursensoren auslesen um 
   oeltemp = analogRead(sensoroeltemp);
   oeltemp = map(oeltemp, 0, 1023, -20, 150);
 
-  drosselklappe = analogRead(sensordrosselklappe);
-  drosselklappe = map(drosselklappe, 95, 875, 0, 100);
+//  drosselklappe = analogRead(sensordrosselklappe);
+//  drosselklappe = map(drosselklappe, 95, 875, 0, 100);
 
   boardspannung = analogRead(sensorbordspannung);
-  boardspannung = map(boardspannung, 0, 1023, 0, 200);
+  boardspannung = map(boardspannung, 0, 1023, 0, 220);
   
   double doubleboardspannung = boardspannung/10.0;
   dtostrf(doubleboardspannung,2,1,boardspannungbuffer);
@@ -215,8 +226,10 @@ description: <I2C Display ansteuern und digitale Temperatursensoren auslesen um 
   Serial.print(vtec);
   Serial.println(" VTEC");
 
-  Serial.print(drosselklappe);
-  Serial.println("% Drosselklappenposition");
+//  Serial.print(drosselklappe);
+//  Serial.println("% Drosselklappenposition");
+  Serial.print(sensorhelligkeit);
+  Serial.println(" Helligkeit");
   Serial.print(boardspannungbuffer);
   Serial.println(" Volt");
   }
@@ -243,14 +256,14 @@ description: <I2C Display ansteuern und digitale Temperatursensoren auslesen um 
   {
     
   // Auslesen und Anzeigen der Aussen und Innentemperatur
-  lcd.setCursor(0, 0);
+  lcd.setCursor(0, 2);
   lcd.print("Aussentemp.");
-  lcd.setCursor(16, 0);
+  lcd.setCursor(16, 2);
   lcd.print(aussentemperatur);
   lcd.print("C ");
-  lcd.setCursor(0, 1);
+  lcd.setCursor(0, 3);
   lcd.print("Innentemp.");
-  lcd.setCursor(16, 1);
+  lcd.setCursor(16, 3);
   lcd.print(innentemperatur);
   lcd.print("C ");  
   //lcd.clear();
@@ -277,18 +290,21 @@ description: <I2C Display ansteuern und digitale Temperatursensoren auslesen um 
   void seite2()
   {
    // Ausgabe Drosselklappenposition
-  lcd.setCursor(0, 2);
-  lcd.print("Drosselklappe");
-  lcd.setCursor(14, 2);
-  lcd.print(drosselklappe);
-  lcd.print("%  ");
+//  lcd.setCursor(0, 2);
+//  lcd.print("Drosselklappe");
+//  lcd.setCursor(14, 2);
+//  lcd.print(drosselklappe);
+//  lcd.print("%  ");
   // Ausgabe Boardspannung
-  lcd.setCursor(0, 3);
+  lcd.setCursor(0, 0);
   lcd.print("Boardspannung");
-  lcd.setCursor(14, 3);
+  lcd.setCursor(14, 0);
   lcd.print(boardspannungbuffer);
   lcd.print("V");  
-    
+
+// Zeile Löschen
+  lcd.setCursor(0,1);
+  lcd.print("               ");
   
   // Auslesen und Anzeigen der Motorraum und Ansauglufttemperatur
   lcd.setCursor(0, 2);
@@ -322,6 +338,7 @@ description: <I2C Display ansteuern und digitale Temperatursensoren auslesen um 
     if (asbState == LOW & vtecState == HIGH) 
     {
     digitalWrite(vtecanzeige, digitalRead(vtecanzeige) ^ 1);
-  }}
+  }
+}
 
 
