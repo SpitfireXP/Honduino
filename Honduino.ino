@@ -291,7 +291,7 @@ int val = analogRead(sensorhelligkeit);
   lcd.print("C Wassertemp.");
   lcd.setCursor(0, 3);
   lcd.print(ansauglufttemperatur);
-  lcd.print("C Ansauglufttemp.");
+  lcd.print("C Ansaugbrückentemp.");
   }
 
 
@@ -305,7 +305,7 @@ void disclaimer()
   lcd.setCursor(0,2);
   lcd.print("THX to: Hauke,");
   lcd.setCursor(0,3);
-  lcd.print("    Thorben, Patrick");
+  lcd.print("SRE, Thorben, Patrick");
   }
 */
   void blinken()
