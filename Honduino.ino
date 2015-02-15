@@ -241,6 +241,18 @@ description: <I2C Display ansteuern und digitale Temperatursensoren auslesen um 
 // Ausgabe der zweiten seite
   void seite1()
   {
+    
+  // Auslesen und Anzeigen der Aussen und Innentemperatur
+  lcd.setCursor(0, 0);
+  lcd.print("Aussentemp.");
+  lcd.setCursor(16, 0);
+  lcd.print(aussentemperatur);
+  lcd.print("C ");
+  lcd.setCursor(0, 1);
+  lcd.print("Innentemp.");
+  lcd.setCursor(16, 1);
+  lcd.print(innentemperatur);
+  lcd.print("C ");  
   //lcd.clear();
   // Ausgabe Öldruck
   lcd.setCursor(0, 0);
@@ -258,7 +270,13 @@ description: <I2C Display ansteuern und digitale Temperatursensoren auslesen um 
   lcd.print(oeltemp);
   lcd.print("C ");
 
-  // Ausgabe Drosselklappenposition
+ 
+  }
+
+// Ausgabe der ersten seite
+  void seite2()
+  {
+   // Ausgabe Drosselklappenposition
   lcd.setCursor(0, 2);
   lcd.print("Drosselklappe");
   lcd.setCursor(14, 2);
@@ -269,24 +287,9 @@ description: <I2C Display ansteuern und digitale Temperatursensoren auslesen um 
   lcd.print("Boardspannung");
   lcd.setCursor(14, 3);
   lcd.print(boardspannungbuffer);
-  lcd.print("V");
-  }
-
-// Ausgabe der ersten seite
-  void seite2()
-  {
-  // Auslesen und Anzeigen der Aussen und Innentemperatur
-  lcd.setCursor(0, 0);
-  lcd.print("Aussentemp.");
-  lcd.setCursor(16, 0);
-  lcd.print(aussentemperatur);
-  lcd.print("C ");
-  lcd.setCursor(0, 1);
-  lcd.print("Innentemp.");
-  lcd.setCursor(16, 1);
-  lcd.print(innentemperatur);
-  lcd.print("C ");
-
+  lcd.print("V");  
+    
+  
   // Auslesen und Anzeigen der Motorraum und Ansauglufttemperatur
   lcd.setCursor(0, 2);
   lcd.print("Motorraumtemp.");
