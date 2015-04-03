@@ -21,8 +21,10 @@ extern "C" void __cxa_pure_virtual() {;}
 void Interruptroutine();
 void seite1();
 void seite2();
+void seite3();
+void seite4();
 void blinken();
 
 #include "C:\Users\Spitfire\Google Drive\Arduino\arduino\hardware\arduino\avr\variants\standard\pins_arduino.h" 
 #include "C:\Users\Spitfire\Google Drive\Arduino\arduino\hardware\arduino\avr\cores\arduino\arduino.h"
-#include "C:\Users\Spitfire\Google Drive\Arduino\arduino\Sketchbook\Honduino\Honduino.ino"
+#include <Honduino.ino>
