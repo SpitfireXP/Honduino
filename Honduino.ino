@@ -164,7 +164,7 @@ void loop()
 
 	// Auslesen und Anzeigen von Öldruck und Öltemperatur auf dem Display
 	int oeldruck = analogRead(sensoroeldruck);
-	oeldruck = map(oeldruck, 100, 900, 0, 100);
+	oeldruck = map(oeldruck, 80, 900, 0, 100);
 	
 	//char oeldruckbuffer [50] ;
 
@@ -172,10 +172,11 @@ void loop()
 	dtostrf(doubleoeldruck,2,1,oeldruckbuffer);
 
 	oeltemp = analogRead(sensoroeltemp);
-	oeltemp = map(oeltemp, 0, 1023, -20, 150);
+	oeltemp = map(oeltemp, 100, 900, -20, 150);
 
 	boardspannung = analogRead(sensorbordspannung);
 	boardspannung = map(boardspannung, 0, 1023, 0, 220);
+	
 	
 	double doubleboardspannung = boardspannung/10.0;
 	dtostrf(doubleboardspannung,2,1,boardspannungbuffer);
@@ -301,7 +302,22 @@ void seite3()
 	
 	// Anzeige für Vtec und ASB muss noch erarbeitet werden
 	lcd.setCursor(0,2);
-	lcd.print("Vtec und ASB WIP");
+	
+	if  (asbState == HIGH)
+	{
+		lcd.print("  Ansaugklappe zu");
+	}
+	if (vtecState == HIGH)
+	{
+		lcd.print("  VTEC an");
+	}
+	else
+	{
+		lcd.print("             ");
+	}
+	
+	
+//	lcd.print("Vtec und ASB WIP");
 	
 		
 }
@@ -314,14 +330,13 @@ void seite4()
 
 	// Zeile Löschen
 	lcd.setCursor(0,1);
-	lcd.print("               ");
+	lcd.print("");
 	
 	// Auslesen und Anzeigen der Motorraum und Ansauglufttemperatur
-	lcd.setCursor(0, 2);
-	//  lcd.print("Motorraumtemp.");
+	lcd.setCursor(2, 2);
 	lcd.print(motorraumtemperatur);
-	lcd.print("C Wassertemp.");
-	lcd.setCursor(0, 3);
+	lcd.print("C Motorraum");
+	lcd.setCursor(2, 3);
 	lcd.print(ansauglufttemperatur);
 	lcd.print("C Ansaugklappe");
 	
