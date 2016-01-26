@@ -197,17 +197,6 @@ void loop()
 		lcd.setCursor(19, 3);
 		lcd.print("C");
 	}
-        else
-        {
-		lcd.setCursor(19, 0);
-		lcd.print(" ");
-		lcd.setCursor(19, 1);
-		lcd.print(" ");
-		lcd.setCursor(19, 2);
-		lcd.print(" ");
-		lcd.setCursor(19, 3);
-		lcd.print(" ");
-	}
 	
 
 
@@ -273,9 +262,10 @@ void seite1()
 	// Ausgabe Öltemperatur
 	lcd.setCursor(0, 1);
 	lcd.print(oeltemp);
-	lcd.print("°C ");
+	lcd.setCursor(3,1);
+	lcd.print("C ");
 	lcd.write(239);
-	lcd.print("ltemperatur ");
+	lcd.print("ltemperatur");
 	//Ausgabe Spannung
 	// Ausgabe Boardspannung
 	lcd.setCursor(0, 2);
@@ -291,17 +281,21 @@ void seite2()
 	// Auslesen und Anzeigen der Aussen und Innentemperatur
 	lcd.setCursor(0, 0);
 	lcd.print(aussentemperatur);
-	lcd.print("C Aussentemp.  ");
+	lcd.setCursor(3, 0);
+	lcd.print("C Aussentemp.");
 	lcd.setCursor(0, 1);
 	lcd.print(innentemperatur);
-	lcd.print("C Innentemp.  ");
+	lcd.setCursor(0, 1);
+	lcd.print("C Innentemp.");
 	
 	lcd.setCursor(0, 2);
 	lcd.print(motorraumtemperatur);
-	lcd.print("C Motorraum  ");
+	lcd.setCursor(3, 2);
+	lcd.print("C Motorraum");
 	lcd.setCursor(0, 3);
 	lcd.print(ansauglufttemperatur);
-	lcd.print("C Ansaugklappe  ");
+    lcd.setCursor(3, 3);
+	lcd.print("C Ansaugklappe");
 	}
 
 
