@@ -3,7 +3,7 @@ project: <Honduino Version1>
 author: <SpitfireXP  -->  http://www.iphpbb.com/board/ftopic-34345126nx14123-11107.html>
 description: <I2C Display ansteuern und digitale Temperatursensoren auslesen um diese dann auf dem Display darzustellen.
 Öldruck und Öltemperatur über einen analogen Eingang auslesen und Darstellen.
-Vtec/ITB anzeigen mittels einem Digitalen ports des Rover 45 Tachos>
+Vtec/ITB anzeigen am Display
 ***********************************************************************************************************************/
 
 /*-----( Import libraries )-----*/
@@ -12,22 +12,19 @@ Vtec/ITB anzeigen mittels einem Digitalen ports des Rover 45 Tachos>
 #include "Wire.h"
 #include "TimerOne.h"
 
+/*
+ Get the LCD I2C Library here:
+ https://bitbucket.org/fmalpartida/new-liquidcrystal/downloads
+ Move any other LCD libraries to another folder or delete them
+ See Library "Docs" folder for possible commands etc.
 
-
-// Get the LCD I2C Library here:
-// https://bitbucket.org/fmalpartida/new-liquidcrystal/downloads
-// Move any other LCD libraries to another folder or delete them
-// See Library "Docs" folder for possible commands etc.
-
-// set the LCD address to 0x27 for a 20 chars 4 line display
-// Set the pins on the I2C chip used for LCD connections:
-//                     addr, en,rw,rs,d4,d5,d6,d7,bl,blpol
+ set the LCD address to 0x27 for a 20 chars 4 line display
+ Set the pins on the I2C chip used for LCD connections:
+                     addr, en,rw,rs,d4,d5,d6,d7,bl,blpol
+*/
 LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);  // Set the LCD I2C address
 
-
-
-// definieren Temperatursensor
-
+// Definitionen der IO ect.
 int error;  //1 = OK, 0 = parity error    return value of getTSicTemp()
 int aussentemperatur;  // "return" of temperture Aussentemperatur
 int innentemperatur;  // "return" of temperture Innentemperatur
@@ -52,24 +49,26 @@ int sensorhelligkeit = (A3);
 
 // definiere VTEC-light
 int vtecState = 0;         // variable for reading the pushbutton status
-int asbState = 0;
-int vtecanzeige = 13;
+//int asbState = 0;
+//int vtecanzeige = 13;
 int vtec = 12;
-int asb = 2;
+//int asb = 2;
 int licht = 10;
 int beleuchtung = 11;
-int alle_x_sekunden=1;
+//int alle_x_sekunden=1;
 
 // Timer für VTEC-Light
-long previousMillis = 0;        // speichert den letzten wert wo der LED-Timer aufgefrischt wurde
-long interval = 50;           // long, da millis sehr groß werden kann
-int timerState = LOW;
+//long previousMillis = 0;        // speichert den letzten wert wo der LED-Timer aufgefrischt wurde
+//long interval = 50;           // long, da millis sehr groß werden kann
+//int timerState = LOW;
 
 
 // Interruptpin
-int Interruptpin = 3;
-int dispSelect = 1;
-int interruptCalled = 1;
+//int Interruptpin = 3;
+int schalter = 3;
+int schalterstatus = 0;
+//int dispSelect = 1;
+//int interruptCalled = 1;
 
 
 
@@ -78,8 +77,8 @@ void setup()
 {
 	pinMode(beleuchtung, OUTPUT);
 	
-	Timer1.initialize(alle_x_sekunden*100000);
-	Timer1.attachInterrupt(blinken);
+//	Timer1.initialize(alle_x_sekunden*100000);
+//	Timer1.attachInterrupt(blinken);
 
 
 	// Starte Serielle Datenübertragung
@@ -90,43 +89,39 @@ void setup()
 
 	
 	// vtec-light
-	pinMode(vtecanzeige, OUTPUT);
+//	pinMode(vtecanzeige, OUTPUT);
 	pinMode(vtec, INPUT);
-	pinMode(asb, INPUT);
+	pinMode(schalter, INPUT);
+//	pinMode(asb, INPUT);
 	
 	// Interrupt
-	attachInterrupt(1, Interruptroutine, FALLING);
+//	attachInterrupt(1, Interruptroutine, FALLING);
 	
 	//  Boot
-	digitalWrite(vtecanzeige, HIGH);
+//	digitalWrite(vtecanzeige, HIGH);
 	analogWrite(beleuchtung, 255);
 	lcd.setCursor(0,0);
 	lcd.print("####################");
 	lcd.setCursor(0,1);
-	lcd.print("#   <<Honduino>>   #");
+	lcd.print("#  <<<Carduino>>>  #");
 	lcd.setCursor(0,2);
-	lcd.print("#      Version 1.3 #");
+	lcd.print("#      Version 1.4b#");
 	lcd.setCursor(0,3);
 	lcd.print("####################");
-	delay(1000);
+        delay(1000);
+        lcd.clear();
 }
 
 // loop
 void loop()
 {
-	
-	
-
 	// Dimmen der Displayhelligkeit per LDR um bei Dunkelheit das Display abzudimmen
-
 	int val = analogRead(sensorhelligkeit);
-	
 	val = constrain (val, 100, 700);
-	int ledLevel = map(val, 700, 100, 255, 30);
-	
+	int ledLevel = map(val, 700, 100, 255, 25);
 	analogWrite(beleuchtung, ledLevel);
 
-
+/* Interrupt
 	if(interruptCalled == 1){
 		lcd.clear();
 		interruptCalled = 0;
@@ -151,90 +146,168 @@ void loop()
 		seite4();
 		break;
 	}
-
+*/
 
 
 	// Auslesen der Temperaturwerte und Wiedergabe auf dem Display
-
 	error = Sensoraussen.getTSicTemp(&aussentemperatur);  //turn the TSIC-Sensor ON -> messure -> OFF
 	error = Sensorinnen.getTSicTemp(&innentemperatur);  //turn the TSIC-Sensor ON -> messure -> OFF
 	error = Sensormotorraum.getTSicTemp(&motorraumtemperatur);  //turn the TSIC-Sensor ON -> messure -> OFF
 	error = Sensoransaugluft.getTSicTemp(&ansauglufttemperatur);  //turn the TSIC-Sensor ON -> messure -> OFF
 
 
-	// Auslesen und Anzeigen von Öldruck und Öltemperatur auf dem Display
+	// Auslesen von Öldruck, Öltemperatur, Bordspannung
 	int oeldruck = analogRead(sensoroeldruck);
 	oeldruck = map(oeldruck, 80, 900, 0, 100);
-	
 	//char oeldruckbuffer [50] ;
-
 	double doubleoeldruck = oeldruck/10.0;
 	dtostrf(doubleoeldruck,2,1,oeldruckbuffer);
-
 	oeltemp = analogRead(sensoroeltemp);
 	oeltemp = map(oeltemp, 100, 900, -20, 150);
-
 	boardspannung = analogRead(sensorbordspannung);
-	boardspannung = map(boardspannung, 0, 1023, 0, 220);
-	
-	
+	boardspannung = map(boardspannung, 0, 1023, 0, 243);
 	double doubleboardspannung = boardspannung/10.0;
 	dtostrf(doubleboardspannung,2,1,boardspannungbuffer);
 
 
 
 	// VTEC-light anzeige
-
 	vtecState = digitalRead(vtec);
-	asbState = digitalRead(asb);
+//	asbState = digitalRead(asb);
+//	if  (asbState == HIGH & vtecState == LOW)
+//	{
+//		digitalWrite(vtecanzeige, HIGH);
+//	}
+//	else
+//	{
+//		digitalWrite(vtecanzeige, LOW);
+//	}
 
-	if  (asbState == HIGH & vtecState == LOW)
+
+
+// Anzeige VTEC
+	if (vtecState == HIGH)
 	{
-		digitalWrite(vtecanzeige, HIGH);
+		lcd.setCursor(19, 0);
+		lcd.print("V");
+		lcd.setCursor(19, 1);
+		lcd.print("T");
+		lcd.setCursor(19, 2);
+		lcd.print("E");
+		lcd.setCursor(19, 3);
+		lcd.print("C");
+	}
+        else
+        {
+		lcd.setCursor(19, 0);
+		lcd.print(" ");
+		lcd.setCursor(19, 1);
+		lcd.print(" ");
+		lcd.setCursor(19, 2);
+		lcd.print(" ");
+		lcd.setCursor(19, 3);
+		lcd.print(" ");
+	}
+	
+
+
+	schalterstatus = digitalRead(schalter);
+	
+	if (schalterstatus == HIGH)
+	{	
+  (seite1());
 	}
 	else
 	{
-		digitalWrite(vtecanzeige, LOW);
+  (seite2());
+	}
+/*
+//Debugging
+Serial.println("----------------------------------------------------");
+Serial.println("Honduino build by SpitfireXP");
+Serial.println("Honduino@SpitfireXP.de");
+Serial.println("Honduino Version 1.4b");
+Serial.println("----------------------------------------------------");
+Serial.print(aussentemperatur);
+Serial.println(" C Außentemperatur");
+Serial.print(innentemperatur);
+Serial.println(" C Innentemperatur");
+
+Serial.print(motorraumtemperatur);
+Serial.println(" C Kühlwassertemperatur");
+Serial.print(ansauglufttemperatur);
+Serial.println(" C Ansdauglufttemperatur");
+
+Serial.print(oeltemp);
+Serial.println(" C Öltemperatur");
+Serial.print(oeldruckbuffer);
+Serial.println(" Bar Öldruck");
+
+//	Serial.print(asb);
+//	Serial.println(" Schaltsaugbrücke");
+//	Serial.print(vtec);
+//	Serial.println(" VTEC");
+
+Serial.print(sensorhelligkeit);
+Serial.print("; ");
+Serial.print(val);
+Serial.print("; ");
+Serial.print(beleuchtung);
+Serial.print("; ");
+Serial.println(" Helligkeit");
+Serial.print(boardspannungbuffer);
+Serial.println(" Volt");
+*/
+}
+
+
+// Ausgabe Seite 1
+void seite1()
+	{
+	// Ausgabe Öldruck
+	lcd.setCursor(0, 0);
+	lcd.print(oeldruckbuffer);
+	lcd.print("Bar ");
+	lcd.write(239);
+	lcd.print("ldruck");
+	// Ausgabe Öltemperatur
+	lcd.setCursor(0, 1);
+	lcd.print(oeltemp);
+	lcd.print("°C ");
+	lcd.write(239);
+	lcd.print("ltemperatur ");
+	//Ausgabe Spannung
+	// Ausgabe Boardspannung
+	lcd.setCursor(0, 2);
+	lcd.print(boardspannungbuffer);
+	lcd.print("V Boardspannung");
+	
+	
+	}
+
+// Ausgabe Seite 2
+void seite2()
+	{
+	// Auslesen und Anzeigen der Aussen und Innentemperatur
+	lcd.setCursor(0, 0);
+	lcd.print(aussentemperatur);
+	lcd.print("C Aussentemp.  ");
+	lcd.setCursor(0, 1);
+	lcd.print(innentemperatur);
+	lcd.print("C Innentemp.  ");
+	
+	lcd.setCursor(0, 2);
+	lcd.print(motorraumtemperatur);
+	lcd.print("C Motorraum  ");
+	lcd.setCursor(0, 3);
+	lcd.print(ansauglufttemperatur);
+	lcd.print("C Ansaugklappe  ");
 	}
 
 
-	//Debugging
-	Serial.println("----------------------------------------------------");
-	Serial.println("Honduino build by SpitfireXP");
-	Serial.println("Honduino@SpitfireXP.de");
-	Serial.println("Honduino Version 1.2");
-	Serial.println("----------------------------------------------------");
-	Serial.print(aussentemperatur);
-	Serial.println(" C Außentemperatur");
-	Serial.print(innentemperatur);
-	Serial.println(" C Innentemperatur");
 
-	Serial.print(motorraumtemperatur);
-	Serial.println(" C Kühlwassertemperatur");
-	Serial.print(ansauglufttemperatur);
-	Serial.println(" C Ansdauglufttemperatur");
 
-	Serial.print(oeltemp);
-	Serial.println(" C Öltemperatur");
-	Serial.print(oeldruckbuffer);
-	Serial.println(" Bar Öldruck");
-
-	Serial.print(asb);
-	Serial.println(" Schaltsaugbrücke");
-	Serial.print(vtec);
-	Serial.println(" VTEC");
-
-	Serial.print(sensorhelligkeit);
-	Serial.print("; ");
-	Serial.print(val);
-	Serial.print("; ");
-	Serial.print(ledLevel);
-	Serial.print("; ");
-	Serial.println(" Helligkeit");
-	Serial.print(boardspannungbuffer);
-	Serial.println(" Volt");
-}
-
+/*
 // Interrupt
 void Interruptroutine()
 {
@@ -249,7 +322,6 @@ void Interruptroutine()
 	}
 
 }
-
 
 
 // Ausgabe der zweiten seite
@@ -302,11 +374,15 @@ void seite3()
 	
 	// Anzeige für Vtec und ASB muss noch erarbeitet werden
 	lcd.setCursor(0,2);
-	
-	if  (asbState == HIGH)
+		if  (asbState == HIGH)
 	{
-		lcd.print("  Ansaugklappe zu");
+		lcd.print("  Ansaugklappe auf");
 	}
+	else
+	{
+		lcd.print("                   ");
+	}
+	lcd.setCursor(0,3);
 	if (vtecState == HIGH)
 	{
 		lcd.print("  VTEC an");
@@ -315,11 +391,6 @@ void seite3()
 	{
 		lcd.print("             ");
 	}
-	
-	
-//	lcd.print("Vtec und ASB WIP");
-	
-		
 }
 
 
@@ -350,6 +421,7 @@ void blinken()
 		digitalWrite(vtecanzeige, digitalRead(vtecanzeige) ^ 1);
 	}
 }
+*/
 
 
 /*
