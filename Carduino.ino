@@ -102,7 +102,7 @@ void loop()
   // Dimmen der Displayhelligkeit per LDR um bei Dunkelheit das Display abzudimmen
   int val = analogRead(sensorhelligkeit);
   val = constrain (val, 100, 700);
-  int ledLevel = map(val, 700, 100, 255, 20);
+  int ledLevel = map(val, 700, 100, 255, 15);
   analogWrite(beleuchtung, ledLevel);
 
   error = Sensoraussen.getTSicTemp(&aussentemperatur);  //turn the TSIC-Sensor ON -> messure -> OFF
@@ -236,19 +236,17 @@ void seite2()
 {
   lcd.setCursor(0, 0);
   lcd.print(aussentemperatur);
-  lcd.setCursor(3, 0);
-  lcd.print("C Aussentemp.");
+  lcd.print("C Aussentemp.  ");
+  
   lcd.setCursor(0, 1);
   lcd.print(innentemperatur);
-  lcd.setCursor(0, 1);
-  lcd.print("C Innentemp.");
+  lcd.print("C Innentemp.  ");
 
   lcd.setCursor(0, 2);
   lcd.print(motorraumtemperatur);
-  lcd.setCursor(3, 2);
-  lcd.print("C Motorraum");
+  lcd.print("C Motorraum  ");
+  
   lcd.setCursor(0, 3);
   lcd.print(ansauglufttemperatur);
-  lcd.setCursor(3, 3);
-  lcd.print("C Ansaugklappe");
+  lcd.print("C Ansaugklappe  ");
 }
